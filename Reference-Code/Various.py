@@ -38,6 +38,25 @@ def PullResults(cur):
     return Result
 
 
+# connection information
+# quoted = urllib.parse.quote_plus("DRIVER={SQL Server Native Client 11.0};SERVER=(localDb)\ProjectsV14;DATABASE=database")
+# engine = create_engine('mssql+pyodbc:///?odbc_connect={}'.format(quoted))
+def ReadFileStoretoSQLServer(file, schema, tableName, engine):
+    df = pd.read_csv(file)
+    
+    df.to_sql(tableName, schema=schema, con = engine)
+
+# connection information
+# quoted = urllib.parse.quote_plus("DRIVER={SQL Server Native Client 11.0};SERVER=(localDb)\ProjectsV14;DATABASE=database")
+# engine = create_engine('mssql+pyodbc:///?odbc_connect={}'.format(quoted))
+def ReadSQLServertoFileStore(file, schema, tableName, engine):
+    df = pd.read_sql(tableName, schema=schema, con=engine)
+
+    df = pd.write_csv(file)
+
+
+
+
 
 ######################################################################################
 # paramters

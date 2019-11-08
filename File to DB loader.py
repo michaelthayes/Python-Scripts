@@ -7,20 +7,28 @@ Created on Sun Feb 17 11:23:47 2019
 
 import pandas as pd
 
-df = pd.read_csv('Data/Ecommerce Purchases')
 
-df = pd.read_csv('Data/student-mat.csv', ';')
+dfEcommerce = pd.read_csv('Data/Ecommerce Purchases')
 
-df.head()
+dfStudent = pd.read_csv('Data/student-mat.csv', ';')
+
+dfStudent.head()
+type(dfStudent)
 
 
-
-## SQL Retrieval
+## Store SQL
 from sqlalchemy import create_engine
 engine = create_engine('sqlite:///:memory:')
 
-df.to_sql('my_table', engine)
-sqldf = pd.read_sql('my_table', con=engine)
+dfStudent.to_sql('my_table', engine)
 
-df.head()
-sqldf
+## Read from SQL
+sqldf = pd.read_sql('my_table', con=engine, where='sex=F')
+
+
+sqldf = sqldf.set_index('index')
+
+sqldf.head()
+dfStudent.head()
+
+
