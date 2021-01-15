@@ -23,7 +23,7 @@ engine = create_engine('sqlite:///:memory:')
 dfStudent.to_sql('my_table', engine)
 
 ## Read from SQL
-sqldf = pd.read_sql('my_table', con=engine, where='sex=F')
+sqldf = pd.read_sql("select * from my_table where sex = 'F'", con=engine)
 
 
 sqldf = sqldf.set_index('index')
