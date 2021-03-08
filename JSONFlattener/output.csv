@@ -1,0 +1,7 @@
+id,name,class,email,email.0,email.1,email.home,email.work
+1,Ault,8,ault@pynative.com,,,,
+2,john,8,jhon@pynative.com,,,,
+3,josh,8,josh@pynative.com,,,,
+4,emma,8,emma@pynative.com,,,,
+5,emma22,8,,emma@pynative.com,someone@gmail.com,,
+6,emma44,8,,,,emma@pynative.com,someone@gmail.com
