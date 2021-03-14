@@ -12,61 +12,126 @@ import pandas as pd
 
 
 
-# sets the index of a dataframe based on the mapper
-def set_index_mapper(df, mapper, col='source'):
+
+def set_index_mapper(data : pd.DataFrame, mapper : pd.DataFrame, col : str ='source') -> pd.DataFrame:
+    """Sets the index of the dataframe based on the mapper
+    
+
+    Parameters
+    ----------
+    data : pd.DataFrame
+        Source or Target frame to be assigned an index.
+    mapper : pd.DataFrame
+        Mapping which contains the columns mapped from source to target.
+    col : str ('source', 'target'), optional
+        Specifies the passed in DataFrame is the source or the target (default is 'source').
+
+    Raises
+    ------
+    ValueError
+        WARNING: dataframe.columns is missing: <field name>
+
+    Returns
+    -------
+    pd.DataFrame
+        Altered DataFrame with appropriate index(es) assigned.
+
+    """
 
     idx = mapper[mapper['idx'] == 'Y']
 
     if not idx.empty:
-        for i, data in idx.iterrows():
+        for i, d in idx.iterrows():
             if col == 'source':
-                if data['source'] not in df.columns:
-                    raise ValueError('WARNING: dataframe.columns is missing: ' + data['source'])
+                if d['source'] not in data.columns:
+                    raise ValueError('WARNING: dataframe.columns is missing: ' + d['source'])
             else:
-                if data['target'] not in df.columns:
-                    raise ValueError('WARNING: dataframe columns is missing: ' + data['target'])
+                if d['target'] not in data.columns:
+                    raise ValueError('WARNING: dataframe.columns is missing: ' + d['target'])
+
+        data = data.set_index(idx['source'].to_list())
+    return data
+
+
+
+def compare_df_cols(source : pd.DataFrame, target : pd.DataFrame, mapper : pd.DataFrame, eq_ne : str = 'eq') -> pd.DataFrame:
+    """Compares 2 dataframes with different columns using the mapping to link them together
     
-        df = df.set_index(idx['source'].to_list())
-    return(df)
 
+    Parameters
+    ----------
+    source : pd.DataFrame
+        Source frame to be compared.
+    target : pd.DataFrame
+        Target frame to be compared.
+    mapper : pd.DataFrame
+        Mapping which contains the columns mapped from source to target.
+    eq_ne : str (eq, ne), optional
+        eq for equal comparison, ne for not equal comparison is the source or the target (default is 'source').
 
-# compares 2 dataframes with different columns, requires a mapper
-def compare_df_cols(source, target, mapper, eq_ne = 'eq'):
-    # df = pd.DataFrame(columns=source.columns.to_list(), index=source.index.names.to_list())
+    Raises
+    ------
+    ValueError
+        WARNING: source columns is missing: <field name>
+        WARNING: target columns is missing: <field name>
+
+    Returns
+    -------
+    pd.DataFrame
+        Results will be in a True/False format.
+
+    """
+ 
     df = pd.DataFrame(index=source.index)
-    # df.set_index(source.index.names)
-    
+
+
     for i, data in mapper[mapper['idx'] != 'Y'].iterrows():
         if data['source'] not in source.columns:
             raise ValueError('WARNING: source columns is missing: ' + data['source'])
-        
+
         if data['target'] not in target.columns:
             raise ValueError('WARNING: target columns is missing: ' + data['target'])
-        
+
         if eq_ne == 'eq':
             df_tmp = source[data['source']].eq(target[data['target']])
         else:
             df_tmp = source[data['source']].ne(target[data['target']])
         df_tmp.name = data['source']
         df = pd.concat([df, df_tmp], axis=1)
-        
-    return(df)
+
+    return df
 
 
-def return_diffs(source, target, result, mapper):
+
+def return_diffs(source : pd.DataFrame, target : pd.DataFrame, result : pd.DataFrame, mapper : pd.DataFrame) -> pd.DataFrame:
+    """Takes in a source and target dataframe, uses the results and mappers to return back a single dataframe with all actual differences
     
-    cols = mapper[mapper['idx']!='Y'][["source","target"]]
+
+    Parameters
+    ----------
+    source : pd.DataFrame
+        Source frame uto be assigned an index.
+    target : pd.DataFrame
+        Target frame to be assigned an index.
+    result : pd.DataFrame
+        True/False results of comparison check.
+    mapper : pd.DataFrame
+        Mapping which contains the columns mapped from source to target.
+
+    Returns
+    -------
+    pd.DataFrame
+        All matching results
+
+    """
+
+    cols = mapper[mapper['idx']!='Y'][['source','target']]
     target = target.rename(columns=cols.set_index('target')['source'])
-    
-    
+
     df = source[result == True].dropna(axis=0, how='all') # drops only when all are NaN
     df = df.append(target[result == True].dropna(axis=0, how='all'))
     
-    
-    # idx = mapper[mapper['idx']=='Y']
-    # df.set_index(mapper[mapper['idx']=='Y']['source'].to_list())
-    
-    return(df.sort_index())
+    return df.sort_index()
 
 
 
@@ -98,25 +163,8 @@ df2_idx = set_index_mapper(df2, df_map, col='target')
 result = compare_df_cols(df_idx, df2_idx, df_map, 'ne')
 
 
-return_diffs(df_idx, df2_idx, result, df_map)
+findings = return_diffs(df_idx, df2_idx, result, df_map)
 
 
-
-idx = df_map[df_map['idx'] == 'Y']
-df_idx.index.names
-
-
-# eq
-df = df_idx[result == True].dropna(axis=0, how='all') # drops only when all are NaN
-df.append(df2_idx[result == True].dropna(axis=0, how='all'))
-
-# ne
-df_idx[result == True]
-df2_idx[result == True]
-
-
-# are these returning the right responses?
-df_idx[result == True]
-df2_idx[result == True]
 
 
