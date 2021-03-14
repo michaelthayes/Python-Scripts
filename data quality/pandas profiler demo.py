@@ -26,7 +26,8 @@ database = 'GoogleAnalytics'
 cnxn = pyodbc.connect('DRIVER={ODBC Driver 17 for SQL Server};SERVER=' + server + ';DATABASE=' + database + ';Trusted_Connection=yes;')
 
 # qry = 'SELECT * FROM SiteVisitsLog'
-qry = 'SELECT * FROM eCommerce..Product'
+qry = 'SELECT * FROM eCommerce..OnlineSales'
+# qry = 'SELECT * FROM Insurance..factMemberClaims'
 
 df = pd.read_sql(qry, cnxn)
 
@@ -42,4 +43,4 @@ df.describe()
 
 # generates an HTML file
 profile = ProfileReport(df, title='Pandas Profiling Report', explorative=True)
-profile.to_file('GoogleAnalytics.html')
+profile.to_file('eCommerce.html')
