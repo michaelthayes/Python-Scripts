@@ -5,6 +5,9 @@ Created on Thu Jul 22 22:01:16 2021
 @author: hayes
 """
 
+server_lst = ['localhost',
+              '127.0.0.1']
+
 
 #####  Queries
 tbl_qry = "SELECT	  \
