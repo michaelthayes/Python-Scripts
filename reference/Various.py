@@ -5,8 +5,7 @@ Created on Thu Nov  7 19:42:23 2019
 @author: mike
 """
 import pandas as pd
-
-
+import pyodbc as db
 
 def ConnectToDBServer(ServerName):
 #Create connection string to connect DBTest database with windows authentication
