@@ -52,21 +52,28 @@ for srvr in sql.server_lst:
     df_all_tbl = df_all_tbl.append(df_tbl[['Server', 'db_nm', 'schema_nm', 'table_nm', 'column_nm', 'column_ordr', 'Type']])
     df_all_proc = df_all_proc.append(df_proc[['Server', 'db_nm', 'schema_name', 'sproc_name']])
 # end loop
-
-
-# now what?
-
+del df_tbl, df_proc
 
 
 
 
 
 
+# if you get an error below: pip install xlsxwriter
+def write_out_files(df, filename, sheet):
+    writer = pd.ExcelWriter(filename) 
+    df.to_excel(writer, sheet_name=sheet, index=False)
+    
+    # Auto-adjust columns' width
+    for column in df:
+        column_width = max(df[column].astype(str).map(len).max(), len(column))
+        col_idx = df.columns.get_loc(column)
+        writer.sheets[sheet]. set_column(col_idx, col_idx, column_width)
+    writer.save()
 
 
-
-
-
+write_out_files(df_all_tbl, 'database_tables.xlsx', 'tables')
+write_out_files(df_all_proc, 'database_sprocs.xlsx', 'sprocs')
 
 
 
