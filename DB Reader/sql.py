@@ -15,9 +15,24 @@ tbl_qry = "SELECT	  \
                 ss.name AS 'schema_nm', \
                 st.name AS 'table_nm', \
                 sc.name as 'column_nm', \
-                sc.column_id as 'column_ordr' \
+                sc.column_id as 'column_ordr', \
+                sty.name + CASE \
+                    WHEN sty.name IN ('char', 'varchar', 'numeric', 'decimal') THEN '(' + CONVERT(VARCHAR(20), sc.max_length) \
+                    WHEN sty.name IN ('nchar', 'nvarchar') THEN '(' + CONVERT(VARCHAR(20), sc.max_length/2) \
+                    ELSE '' \
+                END + CASE \
+                    WHEN sty.name IN ('numeric', 'decimal') THEN ', ' + CONVERT(VARCHAR(20), sc.scale) + ')' \
+                    WHEN sty.name IN ('char', 'nchar', 'varchar', 'nvarchar') THEN ')' \
+                    ELSE '' \
+                END as 'data_type', \
+                CASE sc.is_nullable  \
+                    WHEN 1 THEN 'Y'  \
+                    ELSE 'N' \
+                END AS 'nullable' \
             FROM sys.tables st \
-                INNER JOIN sys.columns sc ON st.object_id = sc.object_id \
+                   INNER JOIN sys.columns sc \
+                    LEFT OUTER JOIN sys.types sty ON sc.system_type_id = sty.user_type_id \
+                ON st.object_id = sc.object_id \
                 INNER JOIN sys.schemas ss ON st.schema_id = ss.schema_id \
             WHERE st.type = 'U' \
             AND st.name <> 'dtproperties' \
@@ -28,9 +43,24 @@ vw_qry = "SELECT	  \
                 ss.name AS 'schema_nm', \
                 st.name AS 'table_nm', \
                 sc.name as 'column_nm', \
-                sc.column_id as 'column_ordr' \
+                sc.column_id as 'column_ordr', \
+                sty.name + CASE \
+                    WHEN sty.name IN ('char', 'varchar', 'numeric', 'decimal') THEN '(' + CONVERT(VARCHAR(20), sc.max_length) \
+                    WHEN sty.name IN ('nchar', 'nvarchar') THEN '(' + CONVERT(VARCHAR(20), sc.max_length/2) \
+                    ELSE '' \
+                END + CASE \
+                    WHEN sty.name IN ('numeric', 'decimal') THEN ', ' + CONVERT(VARCHAR(20), sc.scale) + ')' \
+                    WHEN sty.name IN ('char', 'nchar', 'varchar', 'nvarchar') THEN ')' \
+                    ELSE '' \
+                END as 'data_type', \
+                CASE sc.is_nullable  \
+                    WHEN 1 THEN 'Y'  \
+                    ELSE 'N' \
+                END AS 'nullable' \
             FROM sys.views st \
-                INNER JOIN sys.columns sc ON st.object_id = sc.object_id \
+                   INNER JOIN sys.columns sc \
+                    LEFT OUTER JOIN sys.types sty ON sc.system_type_id = sty.user_type_id \
+                ON st.object_id = sc.object_id \
                 INNER JOIN sys.schemas ss ON st.schema_id = ss.schema_id \
             WHERE st.type = 'U' \
             AND st.name <> 'dtproperties' \

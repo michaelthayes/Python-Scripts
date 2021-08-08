@@ -34,8 +34,14 @@ for srvr in sql.server_lst:
     df_vw = pd.DataFrame()
     df_proc = pd.DataFrame()
     for database in df['name']:
-        qry = 'USE ' + database
-        cur.execute(qry)
+        
+        try:
+            qry = 'USE ' + database
+            cur.execute(qry)
+        except:
+            print('No access to: ' + database)
+            continue
+    
     
         df_tbl = df_tbl.append(pd.read_sql(sql.tbl_qry, con))
         df_vw = df_vw.append(pd.read_sql(sql.vw_qry, con))
@@ -49,7 +55,7 @@ for srvr in sql.server_lst:
 
     df_proc['Server'] = srvr
 
-    df_all_tbl = df_all_tbl.append(df_tbl[['Server', 'db_nm', 'schema_nm', 'table_nm', 'column_nm', 'column_ordr', 'Type']])
+    df_all_tbl = df_all_tbl.append(df_tbl[['Server', 'db_nm', 'schema_nm', 'table_nm', 'column_nm', 'data_type', 'nullable', 'column_ordr', 'Type']])
     df_all_proc = df_all_proc.append(df_proc[['Server', 'db_nm', 'schema_name', 'sproc_name']])
 # end loop
 del df_tbl, df_proc
