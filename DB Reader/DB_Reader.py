@@ -35,6 +35,9 @@ for srvr in sql.server_lst:
     df_proc = pd.DataFrame()
     for database in df['name']:
         
+        if database in sql.system_db:
+            continue
+        
         try:
             qry = 'USE ' + database
             cur.execute(qry)

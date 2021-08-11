@@ -9,6 +9,13 @@ server_lst = ['localhost',
               '127.0.0.1']
 
 
+system_db = ['master',
+             'model',
+             'msdb',
+             'SSISDB',
+             'tempdb',
+             'ReportServer']
+
 #####  Queries
 tbl_qry = "SELECT	  \
                 db_name() as 'db_nm', \
@@ -17,6 +24,7 @@ tbl_qry = "SELECT	  \
                 sc.name as 'column_nm', \
                 sc.column_id as 'column_ordr', \
                 sty.name + CASE \
+                    WHEN sty.name IN ('char', 'varchar') AND sc.max_length = -1 THEN '(max' \
                     WHEN sty.name IN ('char', 'varchar', 'numeric', 'decimal') THEN '(' + CONVERT(VARCHAR(20), sc.max_length) \
                     WHEN sty.name IN ('nchar', 'nvarchar') THEN '(' + CONVERT(VARCHAR(20), sc.max_length/2) \
                     ELSE '' \
@@ -45,6 +53,7 @@ vw_qry = "SELECT	  \
                 sc.name as 'column_nm', \
                 sc.column_id as 'column_ordr', \
                 sty.name + CASE \
+                    WHEN sty.name IN ('char', 'varchar') AND sc.max_length = -1 THEN '(max' \
                     WHEN sty.name IN ('char', 'varchar', 'numeric', 'decimal') THEN '(' + CONVERT(VARCHAR(20), sc.max_length) \
                     WHEN sty.name IN ('nchar', 'nvarchar') THEN '(' + CONVERT(VARCHAR(20), sc.max_length/2) \
                     ELSE '' \
