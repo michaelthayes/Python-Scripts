@@ -1,3 +1,4 @@
 data quality/.pylint.d/
 reference/.pylint.d/
 *.xlsx
+__pycache__/

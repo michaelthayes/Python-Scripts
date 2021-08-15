@@ -42,7 +42,7 @@ for srvr in sql.server_lst:
             qry = 'USE ' + database
             cur.execute(qry)
         except:
-            print('No access to: ' + database)
+            print('No access to: ' + srvr + '.' + database)
             continue
     
     

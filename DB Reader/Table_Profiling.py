@@ -7,6 +7,7 @@ Created on Fri Jul 23 20:35:40 2021
 
 import pyodbc as db
 import pandas as pd
+import sql
 
 # https://pandas-profiling.github.io/pandas-profiling/docs/master/rtd/pages/introduction.html
 # Install:  conda install -c conda-forge pandas-profiling
@@ -31,7 +32,7 @@ for srvr in df['Server'].drop_duplicates():
 
     for i in df[df['Server'] == srvr].index:
 
-        if df['db_nm'][i] in ['master', 'msdb', 'pubs']:
+        if df['db_nm'][i] in sql.system_db:
             continue
         
         tbl_nm = '[' + df['db_nm'][i] + '].[' + df['schema_nm'][i] + '].[' + df['table_nm'][i] + ']'
