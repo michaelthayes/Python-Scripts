@@ -6,21 +6,15 @@ Created on Thu Jul 22 20:27:03 2021
 """
 
 import pandas as pd
-import pyodbc as db
 import sql
-
-
-def ConnectToDBServer(ServerName):
-#Create connection string to connect DBTest database with windows authentication
-    return db.connect('DRIVER={SQL Server};SERVER=' + ServerName + ';Trusted_Connection=yes')
-
+import shared_funcs as sf
 
 
 
 df_all_tbl = pd.DataFrame()
 df_all_proc = pd.DataFrame()
 for srvr in sql.server_lst:
-    con = ConnectToDBServer(srvr)
+    con = sf.ConnectToDBServer(srvr)
 
     qry = 'SELECT name FROM sys.databases'
 
@@ -67,22 +61,8 @@ del df_tbl, df_proc
 
 
 
-
-# if you get an error below: pip install xlsxwriter
-def write_out_files(df, filename, sheet):
-    writer = pd.ExcelWriter(filename) 
-    df.to_excel(writer, sheet_name=sheet, index=False)
-    
-    # Auto-adjust columns' width
-    for column in df:
-        column_width = max(df[column].astype(str).map(len).max(), len(column))
-        col_idx = df.columns.get_loc(column)
-        writer.sheets[sheet]. set_column(col_idx, col_idx, column_width)
-    writer.save()
-
-
-write_out_files(df_all_tbl, 'database_tables.xlsx', 'tables')
-write_out_files(df_all_proc, 'database_sprocs.xlsx', 'sprocs')
+sf.write_out_files(df_all_tbl, 'database_tables.xlsx', 'tables')
+sf.write_out_files(df_all_proc, 'database_sprocs.xlsx', 'sprocs')
 
 
 

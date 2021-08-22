@@ -9,6 +9,8 @@ import pandas as pd
 import numpy as np
 from os import path
 
+
+
 # build out the temp table. Takes a bit.
 n_rows = 1_000_000
 n_cols = 1000

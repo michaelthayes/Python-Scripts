@@ -5,12 +5,7 @@ Created on Sun Mar  7 11:48:10 2021
 @author: hayes
 """
 
-# -*- coding: utf-8 -*-
-"""
-Spyder Editor
 
-This is a temporary script file.
-"""
 
 import pandas as pd
 from pandas_profiling import ProfileReport
