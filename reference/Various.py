@@ -14,7 +14,8 @@ def ConnectToDBServer(ServerName):
 
 
 
-def readSQLScriptFromFile(scriptPath, con):
+def readSQLScriptFromFile(scriptPath, cur):
+    result = []
     with open(scriptPath, 'r') as inp:
         i=0
         sqlQuery=''
@@ -22,8 +23,16 @@ def readSQLScriptFromFile(scriptPath, con):
             if line == 'GO\n':
                 i=i+1
                 print(f'Query #{i}')
-                con.execute(sqlQuery)
-#                print(sqlQuery)
+                # print(sqlQuery)
+                
+                cur.execute(sqlQuery)
+                
+                try:
+                    result.append(pd.DataFrame.from_records(cur.fetchall(), columns=[x[0] for x in cur.description]))
+                except:
+                    print('no results')
+
+
 #                print('****')
                 sqlQuery = ''
             elif 'PRINT' in line:
@@ -32,6 +41,9 @@ def readSQLScriptFromFile(scriptPath, con):
             else:
                 sqlQuery = sqlQuery + line
     inp.close()
+    return(result)
+    
+# End readSQLScriptFromFile
 
 
 
