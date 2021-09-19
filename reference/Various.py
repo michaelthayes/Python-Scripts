@@ -7,14 +7,15 @@ Created on Thu Nov  7 19:42:23 2019
 import pandas as pd
 import pyodbc as db
 
-def ConnectToDBServer(ServerName):
+
+def ConnectToDBServer(ServerName : str) -> db.connect:
 #Create connection string to connect DBTest database with windows authentication
     return db.connect('DRIVER={ODBC Driver 13 for SQL Server};SERVER=' + ServerName + ';Trusted_Connection=yes')
 
 
 
 
-def readSQLScriptFromFile(scriptPath, cur):
+def readSQLScriptFromFile(scriptPath : str, cur : db.Cursor) -> []:
     result = []
     with open(scriptPath, 'r') as inp:
         i=0

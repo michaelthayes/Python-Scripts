@@ -62,3 +62,16 @@ con.close()
 df = pd.concat(result)
 
 
+# Save the result array into a single spreadsheet
+wrksht_names = ['Calendar','SiteVisitsLog','Categories']
+
+writer = pd.ExcelWriter('output.xlsx', engine='xlsxwriter')
+#write each DataFrame to a specific sheet
+i=0
+for df_sheet in result:
+    df_sheet.to_excel(writer, wrksht_names[i], index=True)
+    i+=1
+
+
+
+
