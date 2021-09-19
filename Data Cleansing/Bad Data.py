@@ -7,11 +7,11 @@ Created on Sat Sep 18 15:05:13 2021
 
 import pandas as pd
 import re
-import datetime
+from dateutil.parser import parse
 
 
 
-data = {'key':['Deductible', 'Deductible', 'Deductible', 'Deductible', 'Deuctible','Deductible'],
+data = {'key':['Deductible', 'Deductible', 'Deductible', 'Deductible', 'Deductible','Deductible'],
         'value':[1000, 200, 500, 600, 700, '800'],
         'lookup':['$1,000.00', '2%', 'N/A', 'Included', '750', '4/1/2021']}
 
@@ -19,17 +19,14 @@ df = pd.DataFrame(data)
 
 
 
-# mystring = '$1,00,010.99'
-mystring = '10.99%'
-
-def cleanse_formatting(val = str):
+def cleanse_formatting(val  str):
     digit_only = re.compile(r'[^\d.]+')
             
     if val.startswith('$'):
         result = digit_only.sub('', val)
         fmt = 'money'
     elif val.endswith('%'):
-        result = float(digit_only.sub('', val)) / 100
+        result = str(float(digit_only.sub('', val)) / 100)
         fmt ='percentage'
     elif val.isnumeric():
         result = val
@@ -37,19 +34,25 @@ def cleanse_formatting(val = str):
     else:
         result = val
         fmt = 'string'
-    return [result, fmt]
+    
+    return zip(*(result, fmt))
+
+
+df['db_value'], df['db_format'] = df['lookup'].apply(cleanse_formatting)
 
 
 
 
-def cleanse_formattingv2(df = pd.DataFrame(), col = str):
+
+
+def cleanse_formattingv2(df : pd.DataFrame(), col : str) -> pd.DataFrame:
     digit_only = re.compile(r'[^\d.]+')
     result = df.copy()
     
-    for index, row in df.iterrows():
-        # tmp = pd.DataFrame()
-        val = row[col]
-        print(val)    
+    for index, val in result[col].items():
+
+        print(val)
+
         if val.startswith('$'):
             cleansedcol = digit_only.sub('', val)
             formatcol = 'money'
@@ -60,13 +63,17 @@ def cleanse_formattingv2(df = pd.DataFrame(), col = str):
             cleansedcol = val
             formatcol = 'numeric'
         else:
-            cleansedcol = val
-            formatcol = 'string'
+            try: 
+                dt = parse(val, fuzzy=False)
+                cleansedcol = dt.strftime('%m/%d/%Y')
+                formatcol = 'date'
+            except ValueError:
+                formatcol = 'string'
+                cleansedcol = val
             
         result.loc[index, col + '_cleansed'] = cleansedcol
         result.loc[index, col + '_format'] = formatcol
         
-        # result = result.append(tmp)
     return(result)
 
 result = cleanse_formattingv2(df, 'lookup')
