@@ -35,7 +35,7 @@ df1.merge(df2, how='outer', left_on=['Year','Hour'], right_on=['Year','Hour'])
 
 
 # build out the key and cross join it together
-def build_year_hour_df(yr_min, yr_max):
+def build_year_hour_df(yr_min, yr_max) -> pd.DataFrame():
     Yr = pd.DataFrame({'Year':np.arange(yr_min,yr_max,1)})
     Hr = pd.DataFrame({'Hour':np.arange(0,24,1)})
     Yr['key']=0
