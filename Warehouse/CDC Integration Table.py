@@ -81,14 +81,15 @@ def create_cdc_dataframe_v3(df : pd.DataFrame(), key : [], eff_dt : [], compare_
     expir_dttm = 'row_expir_dttm'
     
     # find first effective date
-    df_result = df.drop_duplicates(subset=key + compare_columns, keep='first').reset_index(drop=True)
-    df_result.rename(columns = {eff_dt[0]:eff_dttm}, inplace=True)
+    df.sort_values(key + eff_dt, inplace=True) #sort first
+    df = df.drop_duplicates(subset=key + compare_columns, keep='first').reset_index(drop=True)
+    df.rename(columns = {eff_dt[0]:eff_dttm}, inplace=True)
     
     # generate the expiration date
-    df_result[expir_dttm] = df_result.groupby(key)[eff_dttm].shift(periods=-1, fill_value=max_dttm)
+    df[expir_dttm] = df.groupby(key)[eff_dttm].shift(periods=-1, fill_value=max_dttm)
 
     # rearrange columns and return it
-    return(df_result[key + [eff_dttm, expir_dttm] + compare_columns])
+    return(df[key + [eff_dttm, expir_dttm] + compare_columns])
 
 
 
@@ -101,7 +102,7 @@ df = pd.read_csv('user_info.csv')
 df.info()
 
 # make these variables to use below
-key = ['user_id','position_number']
+key = ['user_id']#,'position_number']
 time_series_eff_dt = ['eff_dt']
 compare_columns = [i for i in df.columns if i not in key + time_series_eff_dt]
  
@@ -122,8 +123,8 @@ df_final2 = create_cdc_dataframe_v2(df, key, time_series_eff_dt, compare_columns
 
 
 # Proper data quality, but does not work if the source dttm field is of datetime[64]
-# df = pd.read_csv('user_info.csv')
-df = pd.read_csv('user_info_large.csv')
+df = pd.read_csv('user_info.csv')
+# df = pd.read_csv('user_info_large.csv')
 # df = pd.read_csv('user_info_large.csv', parse_dates=['eff_dt'], infer_datetime_format=True)
 df_final3 = create_cdc_dataframe_v3(df, key, time_series_eff_dt, compare_columns)
 
