@@ -7,17 +7,23 @@ Created on Mon Oct 25 16:54:52 2021
 
 import pandas as pd
 import numpy as np
+from functools import reduce
+
 
 df1 = pd.read_csv('df1.csv')
 
 df2 = pd.read_csv('df2.csv')
 
+df3 = pd.read_csv('df2.csv')
+
+a = [df1, df2]
+
 # horizontal concat
-pd.concat([df1, df2], axis=1)
+pd.concat(a, axis=1)
 
 
 # vertical concat
-pd.concat([df1, df2])
+pd.concat(a)
 
 # Inner Join
 df1.merge(df2, how='inner', left_on=['Year','Hour'], right_on=['Year','Hour'])
@@ -30,6 +36,17 @@ df1.merge(df2, how='right', left_on=['Year','Hour'], right_on=['Year','Hour'])
 
 # full Join
 df1.merge(df2, how='outer', left_on=['Year','Hour'], right_on=['Year','Hour'])
+
+
+
+a = [df1, df2, df3]
+
+# use reduce to roll through a list
+df_merged = reduce(lambda  left,right: pd.merge(left,right,on=['Year','Hour'], how='outer'), a)
+
+# if you want to fill the values that don't exist in the lines of merged dataframe simply fill with required strings as
+df_merged = reduce(lambda  left,right: pd.merge(left,right,on=['Year','Hour'], how='outer'), a).fillna('void')
+df_merged.sort_values(['Year','Hour'], inplace=True)
 
 
 
@@ -60,4 +77,27 @@ df['Count_2'] = df['Count_2'].astype(int)
 
 
 df_combined = df.melt(id_vars=['Year','Hour'], value_vars=['Count_1','Count_2'], value_name='Count')
+
+
+
+
+df = pd.concat([df1,df2,df3])
+df_grp = df.groupby('Hour', sort=False)
+
+df_grp.sum()
+df_grp.max()
+df_grp.min()
+df_grp.mean()
+df_grp.count()
+df_grp.agg(['min', 'max', 'mean'])
+
+
+df_grp.groups.keys()
+df_grp.get_group(3)
+
+# returns the max
+df_grp['Count'].max()
+#returns the index for the max
+idx = df_grp['Count'].transform(max) == df['Count']
+df[idx]
 
