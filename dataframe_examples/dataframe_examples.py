@@ -50,7 +50,7 @@ df_merged.sort_values(['Year','Hour'], inplace=True)
 
 
 
-
+# custome function to combine the year and hours together to get a full list
 # build out the key and cross join it together
 def build_year_hour_df(yr_min, yr_max) -> pd.DataFrame():
     Yr = pd.DataFrame({'Year':np.arange(yr_min,yr_max,1)})
@@ -61,13 +61,13 @@ def build_year_hour_df(yr_min, yr_max) -> pd.DataFrame():
     return key
 
 
-
-
 # merge the dataframes, and redo the key to fill in missing rows
 df = df1.merge(df2, how='outer', left_on=['Year','Hour'], right_on=['Year','Hour'], suffixes=('_1','_2'), sort=True)
 key = build_year_hour_df(df.min()['Year'], df.max()['Year']+1)
 
 df = pd.merge(df, key, how='outer', on=['Year','Hour'], sort=True)
+
+
 
 # dataframe cleanup
 df.fillna('0', inplace=True)
@@ -101,3 +101,13 @@ df_grp['Count'].max()
 idx = df_grp['Count'].transform(max) == df['Count']
 df[idx]
 
+
+
+
+# example of reading multiple csv files easily using dask, then converting into pandas
+import dask.dataframe as dd
+
+d = dd.read_csv('*.csv')
+df = d.compute()
+df.dtypes
+df.info()
