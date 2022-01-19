@@ -19,7 +19,7 @@ df = pd.DataFrame(data)
 
 
 
-def cleanse_formatting(val  str):
+def cleanse_formatting(val : str):
     digit_only = re.compile(r'[^\d.]+')
             
     if val.startswith('$'):
@@ -38,7 +38,7 @@ def cleanse_formatting(val  str):
     return zip(*(result, fmt))
 
 
-df['db_value'], df['db_format'] = df['lookup'].apply(cleanse_formatting)
+df[['db_value', 'db_format']] = df['lookup'].apply(cleanse_formatting)
 
 
 
@@ -77,6 +77,7 @@ def cleanse_formattingv2(df : pd.DataFrame(), col : str) -> pd.DataFrame:
     return(result)
 
 result = cleanse_formattingv2(df, 'lookup')
+
 
 
 
