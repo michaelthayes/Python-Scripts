@@ -1,0 +1,6 @@
+example|description|currency|percentages|dates
+helo, world|comma example|$1,000.00|0.05000|1900-01-01
+"helo| world"|pipe example|$0.00|0.00000|
+hello ' world|single quote example|$4,000,100.04|1.00000|2021-03-14
+"hello "" world"|double quote example|$546.04|0.32450|2022-03-04
+N/A|blank example|$43,556.45|0.00004|2022-03-04

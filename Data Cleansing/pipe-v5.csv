@@ -1,0 +1,6 @@
+"example"|"description"|"currency"|"percentages"|"dates"
+"helo, world"|"comma example"|1000|"0.05000"|"1/1/1900"
+"helo| world"|"pipe example"|"N/A"|"N/A"|"N/A"
+"hello ' world"|"single quote example"|"4,000,100.043"|"1.00000"|"2021-03-14"
+"hello "" world"|"double quote example"|546.043|"0.32450"|"3-4-2022 15:30:45"
+"N/A"|"blank example"|43556.453453|"0.00004"|"3-4-2022 4:30:45 PM"
