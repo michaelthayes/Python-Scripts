@@ -8,9 +8,20 @@ import pandas as pd
 import pyodbc as db
 
 
-def ConnectToDBServer(ServerName : str) -> db.connect:
+def ConnectToDBServer(ServerName : str, DatabaseName : str ='master') -> db.connect:
 #Create connection string to connect DBTest database with windows authentication
-    return db.connect('DRIVER={ODBC Driver 13 for SQL Server};SERVER=' + ServerName + ';Trusted_Connection=yes')
+    return db.connect('DRIVER={ODBC Driver 13 for SQL Server};SERVER=' + ServerName + ';Database=' + DatabaseName + ';Trusted_Connection=yes')
+
+
+import sqlalchemy
+from sqlalchemy.engine import URL
+
+def ConnectToDBServerV2(ServerName : str, DatabaseName : str ='master'):
+#Create connection string to connect DBTest database with windows authentication
+    odbc_str = 'DRIVER={SQL Server};SERVER=' + ServerName + ';Database=' + DatabaseName + ';Trusted_Connection=yes;'
+    connection_url = URL.create("mssql+pyodbc", query={'odbc_connect': odbc_str})
+    return sqlalchemy.create_engine(connection_url)
+
 
 
 

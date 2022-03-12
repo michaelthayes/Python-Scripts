@@ -65,3 +65,11 @@ df['currency'] = df['currency'].apply('${:,.2f}'.format)
 df.to_csv('pipe-v9.csv', index=False, sep='|', float_format='%.5f', date_format='%Y-%m-%d' )
 
 
+
+
+
+
+
+
+
+
