@@ -1,18 +1,29 @@
+
 # -*- coding: utf-8 -*-
 """
 Created on Thu Jul 22 20:27:03 2021
-
 @author: hayes
+
+Script uses two local python scripts refer to those on what they do.
+Rolls through a list of Database Servers accessing each database to get:  
+    Table names
+    View names
+    stored prcoedure names
+    
+Then it combines the Views and Tables into a single Excel file
+Then outputs the stored procedures into a singel excel file
+    
+
 """
 
 import pandas as pd
 import sql
-import shared_funcs as sf
+import shared_functions as sf
 
 
 
-df_all_tbl = pd.DataFrame()
-df_all_proc = pd.DataFrame()
+all_tbl = []
+all_proc = []
 for srvr in sql.server_lst:
     con = sf.ConnectToDBServer(srvr)
 
@@ -21,54 +32,48 @@ for srvr in sql.server_lst:
     df = pd.read_sql(qry, con)
 
 
-    cur = con.cursor()
 
-
-    df_tbl = pd.DataFrame()
-    df_vw = pd.DataFrame()
-    df_proc = pd.DataFrame()
+    tbl = []
+    vw = []
+    proc = []
     for database in df['name']:
-        
+        # skip these due to system databases 
         if database in sql.system_db:
             continue
         
         try:
             qry = 'USE ' + database
-            cur.execute(qry)
+            con.execute(qry)
         except:
-            print('No access to: ' + srvr + '.' + database)
+            print('no access to:  ' + srvr + '.' + database)
             continue
-    
-    
-        df_tbl = df_tbl.append(pd.read_sql(sql.tbl_qry, con))
-        df_vw = df_vw.append(pd.read_sql(sql.vw_qry, con))
-        df_proc = df_proc.append(pd.read_sql(sql.proc_qry, con))
+        
+        tbl.append(pd.read_sql(sql.tbl_qry, con))
+        vw.append(pd.read_sql(sql.vw_qry, con))
+        proc.append(pd.read_sql(sql.proc_qry, con))
+            
     # end database loop
+    
+    df_tbl = pd.concat(tbl)
+    df_vw = pd.concat(vw)
+    df_proc = pd.concat(proc)
+    
     
     df_tbl['Type'] = 'Table'
     df_vw['Type'] = 'View'
-    df_tbl = df_tbl.append(df_vw)
+    df_tbl = pd.concat([df_tbl, df_vw])
     df_tbl['Server'] = srvr
 
     df_proc['Server'] = srvr
 
-    df_all_tbl = df_all_tbl.append(df_tbl[['Server', 'db_nm', 'schema_nm', 'table_nm', 'column_nm', 'data_type', 'nullable', 'column_ordr', 'Type']])
-    df_all_proc = df_all_proc.append(df_proc[['Server', 'db_nm', 'schema_name', 'sproc_name']])
+    all_tbl.append(df_tbl[['Server', 'db_nm', 'schema_nm', 'table_nm', 'column_nm', 'data_type', 'nullable', 'column_ordr', 'Type']])
+    all_proc.append(df_proc[['Server', 'db_nm', 'schema_name', 'sproc_name']])
 # end loop
-del df_tbl, df_proc
+del tbl, vw, proc, df_tbl, df_vw, df_proc
 
 
-
-
+df_all_tbl = pd.concat(all_tbl)
+df_all_proc = pd.concat(all_proc)
 
 sf.write_out_files(df_all_tbl, 'database_tables.xlsx', 'tables')
 sf.write_out_files(df_all_proc, 'database_sprocs.xlsx', 'sprocs')
-
-
-
-
-
-
-
-
-
