@@ -12,42 +12,21 @@ import pandas as pd
 import pyodbc as db
 
 
-server_lst = [ 'PRVAMDBRPT01.CLOUD.ICG360.NET',
-                'PRVAMDBRPT02.CLOUD.ICG360.NET',
-                'PRVAMDBRPT03.CLOUD.ICG360.NET',
-                'PRVAMDBRPT04.CLOUD.ICG360.NET',
-                'PRVAMRPTME01.CLOUD.ICG360.NET',
-                'PRVAMIVANSAPP01.CLOUD.ICG360.NET',
-                'PRVAMIVANSAPP02.CLOUD.ICG360.NET',
-                'DVVAMDBRPT01.CLOUD.ICG360.NET', # DM Dev Box
-                'STVAMDBRPT01.CLOUD.ICG360.NET', # DM Staging box
-                'DVVAMDBDEV01.CLOUD.ICG360.NET', # Actuarial Server
-                'PRVAMDBDSS02.CLOUD.ICG360.NET']
-
+server_lst = ['localhost',
+              '127.0.0.1']
 
 system_db = ['master',
              'model',
              'msdb',
              'SSISDB',
              'tempdb',
-             'ReportServer',
-             'ReportServer_1',
-             'ReportServer_1TempDB',
-             'ReportServer_3',
-             'ReportServer_3TempDB',
-             'ReportServerTempDB']
+             'ReportServer']
 
 
 
-search_list = ['PRVAMDBRPT01',
-                'PRVAMDBRPT02',
-                'PRVAMDBRPT03',
-                'PRVAMDBRPT04'
-                'PRVAMIVANSAPP01',
-                'PRVAMIVANSAPP02',
-                'DVVAMDBDEV01',
-                'PRVAMDBDSSPRI', # ICM Server to be shut off 12/31
-                'PRVAMDBDSS02']  # ICM Server to be shut off 12/31
+search_list = ['linkserver',
+               'link_server',
+               'server_link']
 
 
 sproc_search = "SELECT	DB_NAME() as 'database', \
