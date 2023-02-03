@@ -96,36 +96,61 @@ def create_cdc_dataframe_v3(df : pd.DataFrame(), key : [], eff_dt : [], compare_
 
 
 @timefunc
-# New test which performs faster
+# v4 works based on cdc_ind including D for delete
 def create_cdc_dataframe_v4(df : pd.DataFrame(), key : [], eff_dt : [], compare_columns : [], cdc_ind : str) -> pd.DataFrame():
     max_dttm = '9999-12-31 00:00:00.000'
     eff_dttm = 'row_eff_dttm'
     expir_dttm = 'row_expir_dttm'
-    
-    # find first effective date
-    df.sort_values(key + eff_dt, inplace=True) #sort first
-    df_initial = df.drop_duplicates(subset=key, keep='first')
-    df_chg = df.drop_duplicates(subset=key + compare_columns, keep='first')#.reset_index(drop=True)
-
-
-    df_chg = pd.concat([df_initial, df_chg]).drop_duplicates()
-    
-    # df.rename(columns = {eff_dt[0]:eff_dttm}, inplace=True)
-    
+        
+    ####  all of the below works perfectly
+    lst = []
+    for i in df[key[0]].unique():
+        df_tmp = df[df[key[0]] == i]
+        a = df_tmp.shift() # works but needs to shift based on key
+        b = df_tmp[df_tmp.ne(a)][key + compare_columns].dropna(axis=0, how='all')
+        lst.append(df_tmp.loc[b.index])
+    df_chg = pd.concat(lst)
     
     
+    # create the row_expir_dttm column & assign the dates
+    df_chg['sort'] = df_chg[time_series_eff_dt[0]]
+    df_chg[expir_dttm] = df_chg.apply(lambda x: x[time_series_eff_dt[0]] if x['cdc_ind']=='D' else np.nan, axis=1)
+    df_chg[time_series_eff_dt[0]] = df_chg.apply(lambda x: np.nan if x['cdc_ind']=='D' else x[time_series_eff_dt[0]], axis=1)
     
-    # generate the expiration date
-    # df[expir_dttm] = df[eff_dttm].shift(periods=-1, fill_value=max_dttm)
-
-    # if cdc_ind != '':
-        # df = df[df[cdc_ind] == 'I']
-
-    # rearrange columns and return it
-    # return(df[key + [eff_dttm, expir_dttm] + compare_columns])
+    # resort the table
+    df_chg.sort_values([key[0], 'sort'], axis=0, inplace=True)
+    df_chg.reset_index(drop=True, inplace=True)
     
-    # return(df[key + [eff_dttm] + compare_columns])
+    
+    
+    lst = []
+    for i in df_chg[key[0]].unique():
+        df_tmp = df_chg[df_chg[key[0]] == i].reset_index(drop=True)
+        df_shift = df_tmp.shift(periods=-1).reset_index(drop=True)
+        
+        # Fix the missing expiration dates
+        df_tmp['tmp'] = df_shift[time_series_eff_dt]
+        df_tmp[expir_dttm] = df_tmp.apply(lambda x: x['tmp'] if pd.isnull(x[expir_dttm]) else x[expir_dttm], axis=1)
+        df_tmp['tmp'] = df_shift[expir_dttm]
+        df_tmp[expir_dttm] = df_tmp.apply(lambda x: x['tmp'] if pd.isnull(x[expir_dttm]) else x[expir_dttm], axis=1)
+        
+        
+        # fix the missing effective dates
+        df_shift = df_tmp.shift(periods=1).reset_index(drop=True)
+        df_tmp['tmp'] = df_shift[time_series_eff_dt]
+        df_tmp[time_series_eff_dt[0]] = df_tmp.apply(lambda x: x['tmp'] if pd.isnull(x[time_series_eff_dt[0]]) else x[time_series_eff_dt[0]], axis=1)
+        lst.append(df_tmp)
+    df_chg = pd.concat(lst)
+    
+    
+    df_chg[expir_dttm] = df_chg[expir_dttm].fillna(max_dttm)
+    df_chg.rename(columns = {time_series_eff_dt[0]:eff_dttm}, inplace=True)
+    df_chg = df_chg[key + [eff_dttm, expir_dttm] + compare_columns]
+    df_chg = df_chg.drop(columns=[cdc_ind]).drop_duplicates()
+    
     return(df_chg)
+
+
 
 
 
@@ -175,56 +200,7 @@ key = ['user_id']#,'position_number']
 time_series_eff_dt = ['eff_dt']
 cdc_ind = 'cdc_ind'
 compare_columns = [i for i in df.columns if i not in key + time_series_eff_dt]
-# df_final4 = create_cdc_dataframe_v4(df, key, time_series_eff_dt, compare_columns, cdc_ind)
+df_final4 = create_cdc_dataframe_v4(df, key, time_series_eff_dt, compare_columns, cdc_ind)
 
 
 
-
-####  all of the below works perfectly
-lst = []
-for i in df[key[0]].unique():
-    df_tmp = df[df[key[0]] == i]
-    a = df_tmp.shift() # works but needs to shift based on key
-    b = df_tmp[df_tmp.ne(a)][key + compare_columns].dropna(axis=0, how='all')
-    lst.append(df_tmp.loc[b.index])
-df_chg = pd.concat(lst)
-
-eff_dttm = 'row_eff_dttm'
-expir_dttm = 'row_expir_dttm'
-
-# create the row_expir_dttm column & assign the dates
-df_chg['sort'] = df_chg[time_series_eff_dt[0]]
-df_chg[expir_dttm] = df_chg.apply(lambda x: x[time_series_eff_dt[0]] if x['cdc_ind']=='D' else np.nan, axis=1)
-df_chg[time_series_eff_dt[0]] = df_chg.apply(lambda x: np.nan if x['cdc_ind']=='D' else x[time_series_eff_dt[0]], axis=1)
-
-# resort the table
-df_chg.sort_values([key[0], 'sort'], axis=0, inplace=True)
-df_chg.reset_index(drop=True, inplace=True)
-
-
-
-lst = []
-for i in df_chg[key[0]].unique():
-    df_tmp = df_chg[df_chg[key[0]] == i].reset_index(drop=True)
-    df_shift = df_tmp.shift(periods=-1).reset_index(drop=True)
-    
-    # Fix the missing expiration dates
-    df_tmp['tmp'] = df_shift[time_series_eff_dt]
-    df_tmp[expir_dttm] = df_tmp.apply(lambda x: x['tmp'] if pd.isnull(x[expir_dttm]) else x[expir_dttm], axis=1)
-    df_tmp['tmp'] = df_shift[expir_dttm]
-    df_tmp[expir_dttm] = df_tmp.apply(lambda x: x['tmp'] if pd.isnull(x[expir_dttm]) else x[expir_dttm], axis=1)
-    
-    
-    # fix the missing effective dates
-    df_shift = df_tmp.shift(periods=1).reset_index(drop=True)
-    df_tmp['tmp'] = df_shift[time_series_eff_dt]
-    df_tmp[time_series_eff_dt[0]] = df_tmp.apply(lambda x: x['tmp'] if pd.isnull(x[time_series_eff_dt[0]]) else x[time_series_eff_dt[0]], axis=1)
-    lst.append(df_tmp)
-df_chg = pd.concat(lst)
-
-
-max_dttm = '9999-12-31 00:00:00.000'
-df_chg[expir_dttm] = df_chg[expir_dttm].fillna(max_dttm)
-df_chg.rename(columns = {time_series_eff_dt[0]:eff_dttm}, inplace=True)
-df_chg = df_chg[key + [eff_dttm, expir_dttm] + compare_columns]
-df_chg = df_chg.drop(columns=[cdc_ind]).drop_duplicates()
