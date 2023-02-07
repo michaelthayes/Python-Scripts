@@ -152,6 +152,64 @@ def create_cdc_dataframe_v4(df : pd.DataFrame(), key : [], eff_dt : [], compare_
 
 
 
+@timefunc
+# v5 works based on cdc_ind including D for delete, now works for multiple key values
+def create_cdc_dataframe_v5(df : pd.DataFrame(), key : [], eff_dt : [], compare_columns : [], cdc_ind : str) -> pd.DataFrame():
+    max_dttm = '9999-12-31 00:00:00.000'
+    eff_dttm = 'row_eff_dttm'
+    expir_dttm = 'row_expir_dttm'
+        
+    ####  all of the below works perfectly
+    lst = []
+    for index, row in df[key].drop_duplicates().iterrows():
+        # Convert row into dataframe
+        row = pd.DataFrame(row).T
+        df_tmp = df.merge(row, how='inner', on=key)
+        
+        a = df_tmp.shift() # works but needs to shift based on key
+        b = df_tmp[df_tmp.ne(a)][key + compare_columns].dropna(axis=0, how='all')
+        lst.append(df_tmp.loc[b.index])
+    df_chg = pd.concat(lst)
+    
+    
+    # create the row_expir_dttm column & assign the dates
+    df_chg['sort'] = df_chg[time_series_eff_dt[0]]
+    df_chg[expir_dttm] = df_chg.apply(lambda x: x[time_series_eff_dt[0]] if x['cdc_ind']=='D' else np.nan, axis=1)
+    df_chg[time_series_eff_dt[0]] = df_chg.apply(lambda x: np.nan if x['cdc_ind']=='D' else x[time_series_eff_dt[0]], axis=1)
+    
+    # resort the table
+    df_chg.sort_values(by=key + ['sort'], axis=0, inplace=True)
+    df_chg.reset_index(drop=True, inplace=True)
+    
+    
+    lst = []
+    for index, row in df[key].drop_duplicates().iterrows():
+        row = pd.DataFrame(row).T
+        df_tmp = df_chg.merge(row, how='inner', on=key)
+        df_shift = df_tmp.shift(periods=-1).reset_index(drop=True)
+        
+        # Fix the missing expiration dates
+        df_tmp['tmp'] = df_shift[time_series_eff_dt]
+        df_tmp[expir_dttm] = df_tmp.apply(lambda x: x['tmp'] if pd.isnull(x[expir_dttm]) else x[expir_dttm], axis=1)
+        df_tmp['tmp'] = df_shift[expir_dttm]
+        df_tmp[expir_dttm] = df_tmp.apply(lambda x: x['tmp'] if pd.isnull(x[expir_dttm]) else x[expir_dttm], axis=1)
+        
+        
+        # # fix the missing effective dates
+        df_shift = df_tmp.shift(periods=1).reset_index(drop=True)
+        df_tmp['tmp'] = df_shift[time_series_eff_dt]
+        df_tmp[time_series_eff_dt[0]] = df_tmp.apply(lambda x: x['tmp'] if pd.isnull(x[time_series_eff_dt[0]]) else x[time_series_eff_dt[0]], axis=1)
+        lst.append(df_tmp)
+    df_chg = pd.concat(lst)
+    
+    
+    df_chg[expir_dttm] = df_chg[expir_dttm].fillna(max_dttm)
+    df_chg.rename(columns = {time_series_eff_dt[0]:eff_dttm}, inplace=True)
+    df_chg = df_chg[key + [eff_dttm, expir_dttm] + compare_columns]
+    df_chg = df_chg.drop(columns=[cdc_ind]).drop_duplicates()
+    
+    return(df_chg)
+
 
 
 
@@ -196,11 +254,47 @@ df_final3 = create_cdc_dataframe_v3(df, key, time_series_eff_dt, compare_columns
 
 df = pd.read_csv('user_info v2.csv', dtype=str)
 # make these variables to use below
-key = ['user_id']#,'position_number']
+key = ['user_id']
 time_series_eff_dt = ['eff_dt']
 cdc_ind = 'cdc_ind'
 compare_columns = [i for i in df.columns if i not in key + time_series_eff_dt]
 df_final4 = create_cdc_dataframe_v4(df, key, time_series_eff_dt, compare_columns, cdc_ind)
+
+
+
+df = pd.read_csv('user_info v2.csv', dtype=str)
+# make these variables to use below
+key = ['user_id','position_number']
+time_series_eff_dt = ['eff_dt']
+cdc_ind = 'cdc_ind'
+compare_columns = [i for i in df.columns if i not in key + time_series_eff_dt]
+df_final5 = create_cdc_dataframe_v5(df, key, time_series_eff_dt, compare_columns, cdc_ind)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
